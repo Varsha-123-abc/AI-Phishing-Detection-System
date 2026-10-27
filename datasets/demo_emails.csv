@@ -1,0 +1,13 @@
+text,label
+"Hi team, the meeting is scheduled for 10 AM tomorrow. Please review the agenda before joining.",legitimate
+"Your monthly account statement is now available. Sign in through your usual company portal to view it.",legitimate
+"Hello, attached are the notes from today's project meeting. Let me know if anything needs correction.",legitimate
+"Your order has shipped. Track the delivery using the order details in your account.",legitimate
+"Please review the updated project timeline before our Friday planning meeting.",legitimate
+"Your password reset request was received. If you did not request it, contact your IT support team.",legitimate
+"URGENT: Your account will be suspended. Verify your password immediately to avoid losing access.",phishing
+"Your mailbox is full. Click here now to restore access and prevent incoming messages from being blocked.",phishing
+"Congratulations, you have won a prize. Submit your bank details immediately to claim your reward.",phishing
+"Your payment failed. Confirm your card number and security code now to avoid account termination.",phishing
+"IT SECURITY ALERT: Your account has been compromised. Reply with your password to verify your identity.",phishing
+"Final warning: unusual activity detected. Open the attached instructions and enter your login credentials.",phishing

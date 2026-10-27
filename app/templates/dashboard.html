@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PhishGuard | Email Threat Analysis</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand-mark">PG</div>
+        <div>
+            <h1>PhishGuard</h1>
+            <p>AI-Powered Phishing Analysis</p>
+        </div>
+        <span class="local-status">LOCAL ANALYSIS</span>
+    </header>
+
+    <main class="container">
+        <section class="intro">
+            <p class="eyebrow">SECURITY OPERATIONS CENTER</p>
+            <h2>Email Threat Investigation</h2>
+            <p>Inspect email evidence using offline URL analysis,
+               transparent heuristic scoring, and an experimental ML model.</p>
+        </section>
+
+        <section class="panel">
+            <h3>Analyze an email</h3>
+            <p class="muted">Paste the raw email headers and body below.</p>
+
+            <form method="post">
+                <label for="raw_email">Raw email message</label>
+                <textarea id="raw_email" name="raw_email" rows="12"
+                    maxlength="1000000"
+                    placeholder="From: sender@example.com&#10;Subject: Example email&#10;&#10;Paste email content here..."
+                    required>{{ raw_email }}</textarea>
+                <button type="submit">Analyze email</button>
+            </form>
+
+            {% if error %}
+                <div class="alert" role="alert">{{ error }}</div>
+            {% endif %}
+        </section>
+
+        {% if result %}
+            <section class="results">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">ANALYSIS REPORT</p>
+                        <h3>Investigation results</h3>
+                    </div>
+                    <span class="risk-pill risk-{{ result.risk_level }}">
+                        {{ result.risk_level|upper }} RISK
+                    </span>
+                </div>
+
+                <div class="metrics">
+                    <article class="metric">
+                        <span>Heuristic score</span>
+                        <strong>{{ result.risk_score }}<small>/100</small></strong>
+                    </article>
+                    <article class="metric">
+                        <span>Indicators found</span>
+                        <strong>{{ result.indicator_count }}</strong>
+                    </article>
+                    <article class="metric">
+                        <span>URLs extracted</span>
+                        <strong>{{ result.email_summary.url_count }}</strong>
+                    </article>
+                    <article class="metric">
+                        <span>Attachments</span>
+                        <strong>{{ result.email_summary.attachment_count }}</strong>
+                    </article>
+                </div>
+                <div class="severity-summary">
+                    <h3>Indicator severity breakdown</h3>
+                    <div class="severity-metrics">
+                        <article class="severity-metric severity-critical">
+                            <span>Critical</span>
+                            <strong>{{ result.severity_counts.critical }}</strong>
+                        </article>
+                        <article class="severity-metric severity-high">
+                            <span>High</span>
+                            <strong>{{ result.severity_counts.high }}</strong>
+                        </article>
+                        <article class="severity-metric severity-medium">
+                            <span>Medium</span>
+                            <strong>{{ result.severity_counts.medium }}</strong>
+                        </article>
+                        <article class="severity-metric severity-low">
+                            <span>Low</span>
+                            <strong>{{ result.severity_counts.low }}</strong>
+                        </article>
+                    </div>
+                </div>
+                <article class="panel">
+                    <h3>Email summary</h3>
+                    <dl class="summary-list">
+                        <dt>Subject</dt>
+                        <dd>{{ result.email_summary.subject }}</dd>
+                        <dt>Sender</dt>
+                        <dd>{{ result.email_summary.sender }}</dd>
+                    </dl>
+                </article>
+
+                <article class="panel">
+                    <h3>Experimental ML assessment</h3>
+                    {% set ml = result.ml_assessment %}
+                    {% if ml.status == "available" %}
+                        <p class="prediction">
+                            Prediction:
+                            <strong>{{ ml.predicted_label|upper }}</strong>
+                        </p>
+                        <p class="muted">Model: {{ ml.model_type }}</p>
+                        <p class="warning">
+                            Demonstration model only. It was trained on a tiny
+                            hand-written dataset; predictions and class estimates
+                            are not reliable real-world verdicts or calibrated
+                            threat probabilities.
+                        </p>
+                        <ul class="probabilities">
+                            {% for label, value in ml.class_probabilities.items() %}
+                                <li>
+                                    <span>{{ label|capitalize }}</span>
+                                    <strong>{{ (value * 100)|round(1) }}%</strong>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="muted">ML assessment unavailable: {{ ml.note }}</p>
+                    {% endif %}
+                </article>
+
+                <article class="panel">
+                    <h3>Evidence and indicators</h3>
+                    {% if result.indicators %}
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Severity</th>
+                                        <th>Indicator</th>
+                                        <th>Evidence</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in result.indicators %}
+                                        <tr>
+                                            <td>
+                                                <span class="severity severity-{{ item.severity }}">
+                                                    {{ item.severity|capitalize }}
+                                                </span>
+                                            </td>
+                                            <td>{{ item.code }}</td>
+                                            <td class="evidence">{{ item.evidence }}
+                                                {% if item.url %}
+                                                    <div class="url-evidence">
+                                                        URL evidence: {{ item.url }}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="muted">No configured indicators were detected.
+                           This does not guarantee that the email is safe.</p>
+                    {% endif %}
+                </article>
+
+                <p class="disclaimer">{{ result.note }}</p>
+            </section>
+        {% endif %}
+
+        <footer>
+            Offline-first analysis · Links are not opened · Attachments are not executed
+        </footer>
+    </main>
+</body>
+</html>
