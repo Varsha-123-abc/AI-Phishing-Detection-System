@@ -112,3 +112,17 @@ Predicted labels and class probabilities are experimental outputs. They are not 
 The project includes offline email parsing, URL analysis, heuristic risk scoring, an experimental machine-learning classifier, a Flask dashboard, and automated tests.
 
 Persistent incident history, investigation notes, and PDF/CSV report exports are not documented as implemented features in this version.
+
+## Dashboard Screenshots
+
+### Dashboard Overview
+
+![PhishGuard dashboard](docs/screenshots/dashboard.png)
+
+### Sample Email Analysis
+
+![PhishGuard sample analysis](docs/screenshots/sample-analysis1.png)
+
+### Additional Analysis Results
+
+![PhishGuard additional analysis results](docs/screenshots/sample-analysis2.png)
