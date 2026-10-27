@@ -126,7 +126,45 @@ class MLDatasetTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "two examples per class"):
                 load_dataset(path)
 
+    def test_missing_csv_header_raises_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "emails.csv"
+            path.write_text("", encoding="utf-8")
 
+            with self.assertRaisesRegex(ValueError, "header"):
+                load_dataset(path)
+
+    def test_duplicate_csv_column_names_raise_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_csv(
+                directory,
+                ["text", "text", "label"],
+                [
+                    ["Normal email", "Normal email", "legitimate"],
+                    ["Another normal email", "Another normal email", "legitimate"],
+                    ["Phishing email", "Phishing email", "phishing"],
+                    ["Another phishing email", "Another phishing email", "phishing"],
+                ],
+            )
+
+            with self.assertRaisesRegex(ValueError, "header"):
+                load_dataset(path)
+
+    def test_duplicate_email_text_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_csv(
+                directory,
+                ["text", "label"],
+                [
+                    ["Normal meeting email", "legitimate"],
+                    ["Normal meeting email", "legitimate"],
+                    ["Phishing email one", "phishing"],
+                    ["Phishing email two", "phishing"],
+                ],
+            )
+
+            with self.assertRaisesRegex(ValueError, "Duplicate"):
+                load_dataset(path)
 if __name__ == "__main__":
     unittest.main()
 

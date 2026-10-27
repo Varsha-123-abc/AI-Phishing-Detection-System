@@ -25,27 +25,45 @@ REPORT_PATH = PROJECT_ROOT / "reports" / "ml" / "demo_evaluation.json"
 LABELS = ["legitimate", "phishing"]
 
 
+
 def load_dataset(path):
     """Load and validate labeled email text from a CSV file."""
     if not path.is_file():
         raise FileNotFoundError(f"Dataset not found: {path}")
 
     with path.open("r", newline="", encoding="utf-8") as file:
-        rows = list(csv.DictReader(file))
+        reader = csv.DictReader(file)
+
+        # Validate the header before processing any data rows.
+        headers = reader.fieldnames
+        if not headers:
+            raise ValueError("CSV header is missing.")
+
+        if len(headers) != len(set(headers)):
+            raise ValueError("CSV header contains duplicate column names.")
+
+        required_columns = {"text", "label"}
+        if not required_columns.issubset(headers):
+            raise ValueError("CSV must contain 'text' and 'label' columns.")
+
+        rows = list(reader)
 
     if not rows:
         raise ValueError("Dataset is empty.")
 
-    required_columns = {"text", "label"}
-    if not required_columns.issubset(rows[0].keys()):
-        raise ValueError("CSV must contain 'text' and 'label' columns.")
-
     texts = []
     labels = []
+    seen_texts = set()
 
     for row_number, row in enumerate(rows, start=2):
         text = (row.get("text") or "").strip()
         label = (row.get("label") or "").strip().lower()
+
+        if text in seen_texts:
+            raise ValueError(
+                f"Duplicate email text at CSV row {row_number}."
+            )
+        seen_texts.add(text)
 
         if not text:
             raise ValueError(f"Empty text at CSV row {row_number}.")
