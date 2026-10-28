@@ -3,6 +3,8 @@ import unittest
 from pathlib import Path
 
 from core.ml.predictor import (
+    DEMO_MODEL_PATH,
+    MODEL_PATH,
     MAX_TEXT_LENGTH,
     clear_model_cache,
     predict_email_text,
@@ -30,9 +32,27 @@ class MLPredictorTests(unittest.TestCase):
         self.assertTrue(all(0.0 <= p <= 1.0 for p in probabilities.values()))
         self.assertAlmostEqual(sum(probabilities.values()), 1.0, places=4)
 
-    def test_marks_model_as_demonstration_only(self):
-        result = predict_email_text("Your order has shipped.")
+    def test_uses_large_baseline_by_default(self):
+        self.assertEqual(MODEL_PATH.name, "balanced_phishing_model.joblib")
+
+        result = predict_email_text(
+            "Your order has shipped. Thank you for your purchase."
+        )
+
+        self.assertFalse(result["is_demo_model"])
+        self.assertIn("random holdout split", result["limitations"])
+        self.assertIn("investigation indicators", result["limitations"])
+
+    def test_demo_model_can_be_selected_explicitly(self):
+        self.assertTrue(DEMO_MODEL_PATH.is_file())
+
+        result = predict_email_text(
+            "Your order has shipped.",
+            model_path=DEMO_MODEL_PATH,
+        )
+
         self.assertTrue(result["is_demo_model"])
+        self.assertIn("12 hand-written examples", result["limitations"])
         self.assertIn("not reliable real-world", result["limitations"])
 
     def test_rejects_non_string_input(self):
@@ -55,7 +75,9 @@ class MLPredictorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             missing_path = Path(directory) / "missing_model.joblib"
 
-            with self.assertRaisesRegex(FileNotFoundError, "Train it first"):
+            with self.assertRaisesRegex(
+                FileNotFoundError, "Train it first"
+            ):
                 predict_email_text(
                     "Test email",
                     model_path=missing_path,

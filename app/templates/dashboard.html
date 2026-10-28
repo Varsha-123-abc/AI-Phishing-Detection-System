@@ -113,11 +113,28 @@
                             <strong>{{ ml.predicted_label|upper }}</strong>
                         </p>
                         <p class="muted">Model: {{ ml.model_type }}</p>
-                        <p class="warning">
-                            Demonstration model only. It was trained on a tiny
-                            hand-written dataset; predictions and class estimates
-                            are not reliable real-world verdicts or calibrated
-                            threat probabilities.
+                        {% if ml.is_demo_model %}
+                            <p class="warning">
+                                Demonstration model only. It was trained on
+                                12 hand-written examples and is not suitable
+                                for reliable real-world phishing verdicts.
+                            </p>
+                        {% else %}
+                            <p class="warning">
+                                Experimental baseline trained on a merged
+                                public email dataset. Its random holdout
+                                evaluation may be affected by related emails
+                                and source or campaign leakage. Performance on
+                                unseen sources has not been established.
+                            </p>
+                        {% endif %}
+                        <p class="muted">
+                            {{ ml.limitations }}
+                        </p>
+                        <p class="muted">
+                            These class estimates are not calibrated threat
+                            probabilities. Treat predictions as investigation
+                            indicators, not proof that an email is safe or malicious.
                         </p>
                         <ul class="probabilities">
                             {% for label, value in ml.class_probabilities.items() %}

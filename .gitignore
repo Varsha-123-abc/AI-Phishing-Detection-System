@@ -17,6 +17,7 @@ __pycache__/
 
 # Temporary backups
 backups/
+README.md.backup-*
 
 # Generated reports and ML artifacts
 reports/*
@@ -25,3 +26,7 @@ reports/*
 # Private data
 datasets/private/
 samples/private/
+
+# Downloaded and processed research datasets
+
+datasets/processed/

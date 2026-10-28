@@ -1,0 +1,130 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Analysis #{{ analysis.id }} | PhishGuard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 950px;
+            margin: 30px auto;
+            padding: 0 16px;
+            color: #222;
+        }
+        pre {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            background: #f4f5f7;
+            padding: 12px;
+        }
+        .summary { line-height: 1.8; }
+        li { margin-bottom: 12px; }
+        .note {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 12px 0;
+        }
+        .note-meta { color: #555; font-size: 0.9rem; }
+        textarea {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            margin: 8px 0;
+            min-height: 120px;
+        }
+        button { padding: 10px 16px; cursor: pointer; }
+        .message { padding: 10px; margin: 10px 0; }
+        .success { background: #e8f5e9; }
+        .error { background: #ffebee; }
+    </style>
+</head>
+<body>
+    <h1>Saved Analysis #{{ analysis.id }}</h1>
+<p>
+    <a href="{{ url_for('main.analysis_history') }}">← Back to history</a>
+    |
+    <a href="{{ url_for('main.export_analysis_pdf', analysis_id=analysis.id) }}">
+        Download this analysis as PDF
+    </a>
+</p>
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+    <p class="message {{ category }}">{{ message }}</p>
+    {% endfor %}
+
+    <div class="summary">
+        <p><strong>Analyzed at (UTC):</strong> {{ analysis.analyzed_at }}</p>
+        <p><strong>Sender:</strong> {{ analysis.sender }}</p>
+        <p><strong>Subject:</strong> {{ analysis.subject }}</p>
+        <p><strong>Heuristic risk score:</strong> {{ analysis.risk_score }}/100</p>
+        <p><strong>Risk level:</strong> {{ analysis.risk_level|title }}</p>
+        <p><strong>Indicator count:</strong> {{ analysis.indicator_count }}</p>
+        <p><strong>URLs found:</strong> {{ analysis.url_count }}</p>
+        <p><strong>Attachments reported:</strong> {{ analysis.attachment_count }}</p>
+    </div>
+
+    <h2>ML assessment snapshot</h2>
+    <pre>{{ analysis.ml_assessment|tojson(indent=2) }}</pre>
+
+    <h2>Evidence and indicators</h2>
+    {% if analysis.indicators %}
+    <ul>
+        {% for indicator in analysis.indicators %}
+        <li><pre>{{ indicator|tojson(indent=2) }}</pre></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No indicators were recorded for this analysis.</p>
+    {% endif %}
+
+    <section>
+        <h2>Investigation notes</h2>
+        <p>
+            Record your investigation findings, supporting evidence,
+            and actions taken. Notes are saved with a UTC timestamp.
+        </p>
+
+        <form
+            method="post"
+            action="{{ url_for('main.add_investigation_note',
+                              analysis_id=analysis.id) }}"
+        >
+            <label for="note"><strong>New note</strong></label>
+            <textarea
+                id="note"
+                name="note"
+                maxlength="5000"
+                required
+                placeholder="Example: Reviewed sender and authentication indicators. Further verification is required."
+            ></textarea>
+            <button type="submit">Save investigation note</button>
+        </form>
+
+        <h3>Saved notes ({{ notes|length }})</h3>
+        {% if notes %}
+            {% for note in notes %}
+            <article class="note">
+                <p class="note-meta">
+                    Note #{{ note.id }} · {{ note.created_at }} (UTC)
+                </p>
+                <p>{{ note.note }}</p>
+            </article>
+            {% endfor %}
+        {% else %}
+            <p>No investigation notes have been added yet.</p>
+        {% endif %}
+    </section>
+
+    <p>
+        <em>
+            The original email body is not saved in history. Treat scores
+            and model predictions as investigation indicators, not
+            definitive proof of phishing.
+        </em>
+    </p>
+</body>
+</html>
